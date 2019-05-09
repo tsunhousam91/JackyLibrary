@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -82,13 +83,15 @@ public class FileUtils {
     }
 
     /**
-     * 這邊為了安全起見，嚴格限制外面傳進來的格式，一定要包含目錄跟檔名，這邊函數內部要做一些防呆處理。
+     * 這邊為了安全起見 嚴格限制外面傳進來的格式 一定要包含目錄跟檔名 這邊函數內部要做一些防呆處理
+     * 回傳 true 當整個寫檔過程完全順利結束
      *
      * @param directory 寫入檔案的目錄
      * @param fileName  檔名
      * @param content   待寫入的內容
      */
     public static boolean writeFile(File directory, String fileName, String content) {
+        boolean isSuccessful = false;
         if (directory == null) {
             LogUtils.onlyLogW(TAG, "writeFile() failed: directory is null");
             return false;
@@ -97,7 +100,7 @@ public class FileUtils {
             LogUtils.onlyLogW(TAG, "writeFile() failed: fileName is empty");
             return false;
         }
-        if (!directory.exists() || !directory.isDirectory()) {
+        if (!directory.isDirectory()) {
             //先試著把前面的父目錄全部建起來
             if (!directory.mkdirs()) {
                 //建立的過程有可能會失敗，但注意，有可能前面一部分已經成功建起來，後面部分失敗。
@@ -111,20 +114,69 @@ public class FileUtils {
             fos = new FileOutputStream(targetFile);
             fos.write(content.getBytes());
             fos.flush();
+            isSuccessful = true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         } finally {
             if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    return false;
+                    isSuccessful = false;
                 }
             }
         }
-        return true;
+        return isSuccessful;
+    }
+
+    public static String readFile(File sourceFile) {
+        String result = "";
+        if (sourceFile == null) {
+            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile is null");
+            return "";
+        }
+        if (!sourceFile.canRead()) {
+            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile can not be read");
+            return "";
+        }
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(sourceFile);
+            byte[] bytes = new byte[1024];
+            StringBuilder sb = new StringBuilder();
+            int len;
+            while ((len = fis.read(bytes)) != -1) {
+                sb.append(new String(bytes, 0, len));
+            }
+            result = sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    result = "";
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 這個複製檔案的方法並不回傳布林值 因為無法單從回傳值判定到底有無順利複製
+     * 所以要注意 log 如果讀檔 或寫檔過程有發生任何意外 應該都會留下 log
+     * 如果有產生檔案 但打開裡面都是空的 那有可能是讀檔失敗 所以回傳空字串
+     *
+     * @param sourceFile
+     * @param targetDirectory
+     * @param targetFileName
+     */
+    public static void copyFile(File sourceFile, File targetDirectory, String targetFileName) {
+        String content = readFile(sourceFile);
+        FileUtils.writeFile(targetDirectory, targetFileName, content);
     }
 
     /**

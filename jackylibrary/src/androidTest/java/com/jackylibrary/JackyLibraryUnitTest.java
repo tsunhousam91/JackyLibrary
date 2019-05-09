@@ -41,7 +41,6 @@ public class JackyLibraryUnitTest {
         FileUtils.writeFile(innerCacheDir, "testFile.txt", "this is a test.");
         FileUtils.writeFile(externalFilesDir, "testFile.txt", "this is a test.");
         FileUtils.writeFile(externalCacheDir, "testFile.txt", "this is a test.");
-
         return;
     }
 
