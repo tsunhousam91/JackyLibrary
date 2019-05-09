@@ -7,6 +7,8 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
@@ -17,6 +19,30 @@ public class JackyLibraryUnitTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
         assertEquals("com.jackylibrary.test", appContext.getPackageName());
+    }
+
+    @Test
+    public void testFileUtils() {
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.FILES_DIR, appContext, null));
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.CACHE_DIR, appContext, null));
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.EXTERNAL__FILES_DIR, appContext, "123"));
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.EXTERNAL__CACHE_DIR, appContext, null));
+        LogUtils.d(this, "" + FileUtils.isExternalWritable());
+        LogUtils.d(this, "" + FileUtils.isExternalReadable());
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.ENV_EXTERNAL__STORAGE_DIR, appContext, null));
+        LogUtils.d(this, "" + FileUtils.getDir(FileUtils.DirKind.ENV_EXTERNAL__STORAGE_PUBLIC_DIR, appContext, null));
+
+        File innerFilesDir = FileUtils.getDir(FileUtils.DirKind.FILES_DIR, appContext, "");
+        File innerCacheDir = FileUtils.getDir(FileUtils.DirKind.CACHE_DIR, appContext, "");
+        File externalFilesDir = FileUtils.getDir(FileUtils.DirKind.EXTERNAL__FILES_DIR, appContext, "");
+        File externalCacheDir = FileUtils.getDir(FileUtils.DirKind.EXTERNAL__CACHE_DIR, appContext, "");
+        FileUtils.writeFile(innerFilesDir, "testFile.txt", "this is a test.");
+        FileUtils.writeFile(innerCacheDir, "testFile.txt", "this is a test.");
+        FileUtils.writeFile(externalFilesDir, "testFile.txt", "this is a test.");
+        FileUtils.writeFile(externalCacheDir, "testFile.txt", "this is a test.");
+
+        return;
     }
 
     @Test
