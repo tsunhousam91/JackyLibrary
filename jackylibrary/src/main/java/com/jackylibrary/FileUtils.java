@@ -104,7 +104,8 @@ public class FileUtils {
             //先試著把前面的父目錄全部建起來
             if (!directory.mkdirs()) {
                 //建立的過程有可能會失敗，但注意，有可能前面一部分已經成功建起來，後面部分失敗。
-                LogUtils.onlyLogW(TAG, "writeFile() failed: directory created failed");
+                LogUtils.onlyLogW(TAG, "writeFile() failed: directory can not be created, directoryPath: "
+                        + directory.getAbsolutePath());
                 return false;
             }
         }
@@ -133,11 +134,12 @@ public class FileUtils {
     public static String readFile(File sourceFile) {
         String result = "";
         if (sourceFile == null) {
-            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile is null");
+            LogUtils.w(TAG, "readFile() failed: sourceFile is null");
             return "";
         }
         if (!sourceFile.canRead()) {
-            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile can not be read");
+            LogUtils.w(TAG, "readFile() failed: sourceFile can not be read, filePath: "
+                    + sourceFile.getAbsolutePath());
             return "";
         }
         FileInputStream fis = null;
@@ -177,6 +179,63 @@ public class FileUtils {
     public static void copyFile(File sourceFile, File targetDirectory, String targetFileName) {
         String content = readFile(sourceFile);
         FileUtils.writeFile(targetDirectory, targetFileName, content);
+    }
+
+    /**
+     * 此方法只能刪除一個檔案 且只能刪除檔案 無法刪除目錄 當你只想刪除檔案
+     * 怕不小心刪除到目錄 請使用此方法
+     *
+     * @param targetFile
+     */
+    public static boolean deleteOneFile(File targetFile) {
+        if (targetFile == null) {
+            LogUtils.w(TAG, "deleteFile() failed: targetFile is null");
+            return false;
+        }
+        // 如果不是目錄 才准許刪除
+        if (targetFile.exists() && !targetFile.isDirectory()) {
+            if (!targetFile.delete()) {
+                LogUtils.w(TAG, "deleteFile() failed: targetFile can not be deleted, filePath: "
+                        + targetFile.getAbsolutePath());
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 此方法會遞迴地刪除該目標 及所有其下的子目標
+     * 當你想刪除一整個目錄 包含目錄底下的檔案時 請用此方法
+     * 另外此法也能刪除一般的檔案
+     *
+     * @param targetFile
+     */
+    public static boolean deleteFilesRecursively(File targetFile){
+        if(targetFile == null){
+            LogUtils.w(TAG, "deleteFilesRecursively() failed: targetFile is null");
+            return false;
+        }
+        if(deleteOneFile(targetFile)){
+            return true;
+        }
+        if(targetFile.isDirectory()){
+            File []files = targetFile.listFiles();
+            for(File file : files){
+                if(!deleteFilesRecursively(file)){
+                    return false;
+                }
+            }
+            if(!targetFile.delete()){
+                LogUtils.w(TAG, "deleteFilesRecursively() failed: " +
+                        "targetDirectory can not be deleted, directoryPath: "
+                        + targetFile.getAbsolutePath());
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
