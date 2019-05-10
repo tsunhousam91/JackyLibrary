@@ -189,19 +189,27 @@ public class FileUtils {
      */
     public static boolean deleteOneFile(File targetFile) {
         if (targetFile == null) {
-            LogUtils.w(TAG, "deleteFile() failed: targetFile is null");
+            LogUtils.w(TAG, "deleteOneFile() failed: targetFile is null");
             return false;
         }
         // 如果不是目錄 才准許刪除
-        if (targetFile.exists() && !targetFile.isDirectory()) {
+        if (targetFile.exists()) {
+            if (targetFile.isDirectory()) {
+                LogUtils.w(TAG, "deleteOneFile() failed: targetFile is directory, directoryPath: "
+                        + targetFile.getAbsolutePath());
+                return false;
+            }
             if (!targetFile.delete()) {
-                LogUtils.w(TAG, "deleteFile() failed: targetFile can not be deleted, filePath: "
+                LogUtils.w(TAG, "deleteOneFile() failed: targetFile can not be deleted, filePath: "
                         + targetFile.getAbsolutePath());
                 return false;
             }
             return true;
+        } else {
+            LogUtils.w(TAG, "deleteOneFile() failed: targetFile does not exist, filePath: "
+                    + targetFile.getAbsolutePath());
+            return false;
         }
-        return false;
     }
 
 
@@ -212,22 +220,21 @@ public class FileUtils {
      *
      * @param targetFile
      */
-    public static boolean deleteFilesRecursively(File targetFile){
-        if(targetFile == null){
+    public static boolean deleteFilesRecursively(File targetFile) {
+        if (targetFile == null) {
             LogUtils.w(TAG, "deleteFilesRecursively() failed: targetFile is null");
             return false;
         }
-        if(deleteOneFile(targetFile)){
-            return true;
-        }
-        if(targetFile.isDirectory()){
-            File []files = targetFile.listFiles();
-            for(File file : files){
-                if(!deleteFilesRecursively(file)){
+        if (!targetFile.isDirectory()) {
+            return deleteOneFile(targetFile);
+        } else {
+            File[] files = targetFile.listFiles();
+            for (File file : files) {
+                if (!deleteFilesRecursively(file)) {
                     return false;
                 }
             }
-            if(!targetFile.delete()){
+            if (!targetFile.delete()) {
                 LogUtils.w(TAG, "deleteFilesRecursively() failed: " +
                         "targetDirectory can not be deleted, directoryPath: "
                         + targetFile.getAbsolutePath());
@@ -235,7 +242,6 @@ public class FileUtils {
             }
             return true;
         }
-        return false;
     }
 
     /**

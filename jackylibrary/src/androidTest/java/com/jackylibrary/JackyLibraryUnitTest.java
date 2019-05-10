@@ -41,6 +41,17 @@ public class JackyLibraryUnitTest {
         FileUtils.writeFile(innerCacheDir, "testFile.txt", "this is a test.");
         FileUtils.writeFile(externalFilesDir, "testFile.txt", "this is a test.");
         FileUtils.writeFile(externalCacheDir, "testFile.txt", "this is a test.");
+        for (int i = 0; i < 15; i++) {
+            FileUtils.copyFile(new File(externalFilesDir, "testFile.txt"), externalFilesDir, i + ".txt");
+        }
+        FileUtils.deleteOneFile(new File(externalFilesDir, "0.txt"));
+        FileUtils.deleteOneFile(new File(externalFilesDir, "123"));
+        FileUtils.deleteOneFile(new File(externalFilesDir, "11.txt"));
+
+        FileUtils.deleteFilesRecursively(new File(externalFilesDir, "123"));
+        FileUtils.deleteFilesRecursively(new File(externalFilesDir, "0.txt"));
+        FileUtils.deleteFilesRecursively(externalFilesDir);
+
         return;
     }
 
