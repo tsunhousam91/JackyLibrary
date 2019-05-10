@@ -6,8 +6,8 @@ import android.content.SharedPreferences;
 import java.util.HashMap;
 
 public class PreferenceUtils {
-
-    private static HashMap<String, SharedPreferences> spMap;
+    private static final String TAG = PreferenceUtils.class.getName();
+    private static HashMap<String, SharedPreferences> spMap = new HashMap<>();
 
     /**
      * 此方法回傳預設的 preference，將以 packageName 當檔名。
@@ -15,8 +15,9 @@ public class PreferenceUtils {
      * @param context
      * @return
      */
-    public static SharedPreferences getPreference(Context context) {
+    public static SharedPreferences getDefaultPreference(Context context) {
         if (context == null) {
+            LogUtils.w(TAG, "getDefaultPreference() failed: context is null");
             return null;
         }
         return getPreference(context, context.getPackageName());
@@ -30,11 +31,13 @@ public class PreferenceUtils {
      * @return
      */
     public static SharedPreferences getPreference(Context context, String name) {
-        if (context == null || StringUtils.isEmpty(name)) {
+        if (context == null) {
+            LogUtils.w(TAG, "getPreference() failed: context is null");
             return null;
         }
-        if (spMap == null) {
-            spMap = new HashMap<>();
+        if (StringUtils.isEmpty(name)) {
+            LogUtils.w(TAG, "getPreference() failed: name is empty");
+            return null;
         }
         SharedPreferences sp = spMap.get(name);
         if (sp != null) {
@@ -44,6 +47,5 @@ public class PreferenceUtils {
         spMap.put(name, sp);
         return sp;
     }
-
 
 }
