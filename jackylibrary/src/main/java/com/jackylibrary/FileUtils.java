@@ -25,13 +25,13 @@ public class FileUtils {
         // data/data/[packageName]/cache/
         CACHE_DIR,
 
-        // 任何APP 都可讀取 但需要宣告權限 (Android 4.4之後 自己的APP 存取自己的 不用宣告權限)
-        // 能否寫入需測試 使用者可以瀏覽 系統有可能會砍這邊的資料 移除 APP 時會刪除
+        // 任何APP 都可存取 但需要宣告權限 (Android 4.4之後 自己的APP 存取自己的 不用宣告權限)
+        // 使用者可以瀏覽 移除 APP 時會刪除
         // storage/emulated/0/Android/data/[packageName]/files/
         EXTERNAL__FILES_DIR,
 
-        // 任何APP 都可讀取 但需要宣告權限 (Android 4.4之後 自己的APP 存取自己的 不用宣告權限)
-        // 能否寫入需測試 使用者可以瀏覽 移除 APP 時會刪除
+        // 任何APP 都可存取 但需要宣告權限 (Android 4.4之後 自己的APP 存取自己的 不用宣告權限)
+        // 使用者可以瀏覽 系統有可能會砍這邊的資料 移除 APP 時會刪除
         // storage/emulated/0/Android/data/[packageName]/caches/
         EXTERNAL__CACHE_DIR,
 
