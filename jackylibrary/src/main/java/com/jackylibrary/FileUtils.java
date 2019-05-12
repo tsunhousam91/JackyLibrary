@@ -12,7 +12,11 @@ public class FileUtils {
     private static final String TAG = FileUtils.class.getName();
 
     public enum DirKind {
-        // data/data/[packageName]/
+        // 不用宣告存取權限
+        // 其他app無法存取 使用者也無法瀏覽 移除 APP 時會刪除
+        // data/data/[packageName]/app_ + [外部傳進來的 name]
+        // 注意 外面傳進來的 name 前面因為被強制加上 app_ 故無法用這個方式存取諸如 data/data/[packageName]/shared_prefs/ 等目錄
+        // 想存取那些特殊目錄的話也行 但需要直接指定正確絕對路徑
         INNER_DIR,
 
         // 不用宣告存取權限

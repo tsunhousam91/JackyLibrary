@@ -36,8 +36,8 @@ public class PreferenceUtils {
             return null;
         }
         if (StringUtils.isEmpty(name)) {
-            LogUtils.w(TAG, "getPreference() failed: name is empty");
-            return null;
+            LogUtils.w(TAG, "getPreference() abnormal: name is empty, will use defaultPreference");
+            return getDefaultPreference(context);
         }
         SharedPreferences sp = spMap.get(name);
         if (sp != null) {

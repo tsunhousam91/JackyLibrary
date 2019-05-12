@@ -107,4 +107,16 @@ public class JackyLibraryUnitTest {
             }
         }
     }
+
+    @Test
+    public void testPreferenceUtils() {
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        PreferenceUtils.getPreference(appContext, "hello").edit().putBoolean("test", true).commit();
+        PreferenceUtils.getPreference(appContext, null).edit().putBoolean("test", true).commit();
+        FileUtils.deleteOneFile(
+                new File("/data/user/0/com.jackylibrary.test/shared_prefs/com.jackylibrary.test.xml"));
+        PreferenceUtils.getPreference(appContext, "").edit().putBoolean("test", true).commit();
+        FileUtils.deleteOneFile(
+                new File("/data/user/0/com.jackylibrary.test/shared_prefs/com.jackylibrary.test.xml"));
+    }
 }
