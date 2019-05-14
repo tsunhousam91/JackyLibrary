@@ -138,11 +138,11 @@ public class FileUtils {
     public static String readFile(File sourceFile) {
         String result = "";
         if (sourceFile == null) {
-            LogUtils.w(TAG, "readFile() failed: sourceFile is null");
+            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile is null");
             return "";
         }
         if (!sourceFile.canRead()) {
-            LogUtils.w(TAG, "readFile() failed: sourceFile can not be read, filePath: "
+            LogUtils.onlyLogW(TAG, "readFile() failed: sourceFile can not be read, filePath: "
                     + sourceFile.getAbsolutePath());
             return "";
         }

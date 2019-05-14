@@ -6,7 +6,6 @@ import android.util.Log;
 
 import java.io.File;
 
-
 public class LogUtils {
     private static final String TAG = LogUtils.class.getName();
     private static final String LOG_CONFIG = "logConfig";
@@ -16,6 +15,7 @@ public class LogUtils {
     private static final int INFO = 3;
     private static final int WARN = 4;
     private static final int ERROR = 5;
+    private static final String[] logRanks = {"", "v ", "d ", "i ", "w ", "e "};
     private static Context appContext;
     private static File externalLogDirectory;
     private static File innerLogDirectory;
@@ -27,7 +27,6 @@ public class LogUtils {
     private static final String LOG_DATE_FORMAT = "yyyyMMdd";
     private static final String LOG_TIME_PREFIX_FORMAT = "HH:mm:ss ";
     private static final String NEW_LINE = "\r\n";
-    private static final Object CACHE_LOG_LOCK = new Object();
     private static String lastLogDate = "";
 
     private static class LogBuffer {
@@ -35,54 +34,53 @@ public class LogUtils {
         private int currentLogSize;
 
         private LogBuffer() {
-            reset();
-        }
-
-        /**
-         * 注意 只有換日的情況 還有第一次進入 app 讓 LogBuffer 初始化的時候才應該呼叫 reset
-         * log數抵達限制 將 cacheLog 寫入檔案時 並不需要呼叫 reset 因為沒必要把 cacheLog 清空
-         * cacheLog 還能繼續使用 就不用重新再讀檔了
-         */
-        private void reset() {
             cacheLog = null;
             currentLogSize = 0;
         }
 
-        public void addNewLog(String tag, String log) {
+        /**
+         * 宣告成 synchrinized 保護多線程同時要執行的問題
+         *
+         * @param tag
+         * @param log
+         */
+        public synchronized void addNewLog(String tag, String log, String logRank) {
             long nowTimestamp = System.currentTimeMillis();
             String nowDate = TimeUtils.getDateFormat(LOG_DATE_FORMAT, nowTimestamp);
 
             if (cacheLog == null) {
+                //會進入這邊就是第一次開 app
                 String targetFileName = nowDate + LOG_FILE_NAME_POSTFIX;
-                String oldLogs = readLogFromFile(targetFileName);
+                String oldLogs = readLogFromFile(targetFileName); //第一次開 app 需要把之前的 log 讀回來
                 cacheLog = new StringBuilder(oldLogs);
                 lastLogDate = nowDate;
             } else {
-                //上一筆 log 的日期跟這筆不一樣 進入換日了 要換新的檔案 要先把之前的 cacheLog 寫進檔案
                 if (!lastLogDate.equals(nowDate)) {
+                    //上一筆 log 的日期跟這筆不一樣 進入換日了 要換新的檔案 要先把之前的 cacheLog 寫進檔案
                     //將 cacheLog 寫入檔案 並 reset logBuffer
-                    String targetFileName = nowDate + LOG_FILE_NAME_POSTFIX;
+                    String targetFileName = lastLogDate + LOG_FILE_NAME_POSTFIX;
                     writeLogToFile(targetFileName, cacheLog.toString());
-                    reset();
-                    //並且再重跑一次 addNewLog 讓這筆 log 可以寫入新的日期的檔案
-                    addNewLog(tag, log);
-                    return;
+
+                    //對 cacheLog 初始化 因為進入換日了 需要一個新的乾淨的緩存來放新的日期的 log
+                    cacheLog = new StringBuilder();
+                    currentLogSize = 0;
+                    lastLogDate = nowDate;
                 }
             }
 
-            synchronized (CACHE_LOG_LOCK) {
-                cacheLog.append(TimeUtils.getDateFormat(LOG_TIME_PREFIX_FORMAT, nowTimestamp))
-                        .append(tag)
-                        .append(NEW_LINE)
-                        .append(log)
-                        .append(NEW_LINE);
-                currentLogSize++;
-                if (currentLogSize >= DEFAULT_MAX_LOGS) {
-                    //將 cacheLog 寫入檔案 並清空 counter
-                    String targetFileName = nowDate + LOG_FILE_NAME_POSTFIX;
-                    writeLogToFile(targetFileName, cacheLog.toString());
-                    currentLogSize = 0;
-                }
+            //將 log 資訊加進緩存 並讓 counter + 1
+            cacheLog.append(TimeUtils.getDateFormat(LOG_TIME_PREFIX_FORMAT, nowTimestamp))
+                    .append(logRank)
+                    .append(tag)
+                    .append(NEW_LINE)
+                    .append(log)
+                    .append(NEW_LINE);
+            currentLogSize++;
+            if (currentLogSize >= maxLogsInBuffer) {
+                //將 cacheLog 寫入檔案 並清空 counter
+                String targetFileName = nowDate + LOG_FILE_NAME_POSTFIX;
+                writeLogToFile(targetFileName, cacheLog.toString());
+                currentLogSize = 0;
             }
         }
     }
@@ -94,20 +92,10 @@ public class LogUtils {
             throw new NullPointerException("prepare() error: context is null");
         }
         appContext = context.getApplicationContext();
-
-        //todo 注意 下面兩個 new File(externalFilesDir.getParentFile(), LOG_DIRECTORY_NAME) 恐怕都不是建立目錄 但沒差
-        //todo 因為寫檔的時候有防呆 會先把父目錄都建起來 所以不會有問題  但還是要測試一下
         File externalFilesDir = FileUtils.getDir(FileUtils.DirKind.EXTERNAL__FILES_DIR, appContext, null);
         externalLogDirectory = externalFilesDir != null ? new File(externalFilesDir.getParentFile(), LOG_DIRECTORY_NAME) : null;
-
-
-        LogUtils.onlyLogW(TAG, "" + externalLogDirectory);
-
         File innerFilesDir = FileUtils.getDir(FileUtils.DirKind.INNER_DIR, appContext, null);
         innerLogDirectory = innerFilesDir != null ? new File(innerFilesDir.getParentFile(), LOG_DIRECTORY_NAME) : null;
-
-        LogUtils.onlyLogW(TAG, "" + innerLogDirectory);
-
     }
 
     public static boolean isPrepared() {
@@ -155,17 +143,16 @@ public class LogUtils {
             // 將新的 log 加到 buffer 並當滿足以下條件時呼叫 writeLogToFile 進行寫入
             // 1. 當發現日期變更時
             // 2. 當log 數抵達 maxLogsInBuffer (上限可調整)
-            logBuffer.addNewLog(tag, msg);
+            logBuffer.addNewLog(tag, msg, logRanks[printType]);
         }
     }
 
     /**
      * 此方法將 log 從檔案讀到 cahceLog
-     * 宣告成 synchrinized 保護多線程同時要寫或讀的問題
      *
      * @param fileName
      */
-    private synchronized static String readLogFromFile(String fileName) {
+    private static String readLogFromFile(String fileName) {
         File targetDirectory;
         if (FileUtils.isExternalReadable() && externalLogDirectory != null) {
             targetDirectory = externalLogDirectory;
@@ -177,14 +164,13 @@ public class LogUtils {
 
     /**
      * 此方法直接把訊息寫入到檔案
-     * 宣告成 synchrinized 保護多線程同時要寫或讀的問題
      * 這邊不再處理是否寫入成功或失敗的問題 理論上都會成功
      * 若失敗那可能是特殊底層問題我也無法處理 反正還是會有錯誤訊息
      *
      * @param fileName
      * @param msg
      */
-    private synchronized static void writeLogToFile(String fileName, String msg) {
+    private static void writeLogToFile(String fileName, String msg) {
         File targetDirectory;
         if (FileUtils.isExternalWritable() && externalLogDirectory != null) {
             targetDirectory = externalLogDirectory;
@@ -409,7 +395,10 @@ public class LogUtils {
 
     @Override
     protected void finalize() throws Throwable {
-        //TODO 還有尚未寫入檔案的資源必須被寫入
+        if (logBuffer.cacheLog != null && lastLogDate != null) {
+            String targetFileName = lastLogDate + LOG_FILE_NAME_POSTFIX;
+            writeLogToFile(targetFileName, logBuffer.cacheLog.toString());
+        }
         super.finalize();
     }
 }

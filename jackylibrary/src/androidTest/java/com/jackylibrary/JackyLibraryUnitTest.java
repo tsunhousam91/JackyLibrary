@@ -57,6 +57,11 @@ public class JackyLibraryUnitTest {
 
     @Test
     public void testLogUtils() {
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        LogUtils.prepare(appContext);
+        LogUtils.enableLogToFile(true);
+
+        LogUtils.setMaxLogsInBuffer(500);
         for (int i = 1; i <= 5; i++) {
             switch (i) {
                 case 1:
@@ -106,6 +111,16 @@ public class JackyLibraryUnitTest {
                     break;
             }
         }
+
+        LogUtils.v(this, 123);
+        LogUtils.v(this, 123);
+        LogUtils.v(this, 123);
+        LogUtils.v(this, 123);
+        LogUtils.v(this, 123);
+        for (int i = 0; i < 1000; i++) {
+            LogUtils.i(this, i);
+        }
+        return;
     }
 
     @Test

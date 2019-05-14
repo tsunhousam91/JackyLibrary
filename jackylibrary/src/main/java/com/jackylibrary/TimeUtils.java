@@ -1,5 +1,8 @@
 package com.jackylibrary;
 
+import android.content.ContentProvider;
+import android.provider.Settings;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
