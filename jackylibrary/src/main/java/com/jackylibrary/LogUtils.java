@@ -148,6 +148,18 @@ public class LogUtils {
     }
 
     /**
+     * 此方法會將目前的 cacheLog 強制立即寫入檔案
+     */
+    public synchronized static void flushLog(){
+        if(logBuffer.cacheLog != null){
+            String nowDate = TimeUtils.getDateFormat(LOG_DATE_FORMAT, System.currentTimeMillis());
+            String targetFileName = nowDate + LOG_FILE_NAME_POSTFIX;
+            writeLogToFile(targetFileName, logBuffer.cacheLog.toString());
+            logBuffer.currentLogSize = 0;
+        }
+    }
+
+    /**
      * 此方法將 log 從檔案讀到 cahceLog
      *
      * @param fileName
