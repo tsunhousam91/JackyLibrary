@@ -5,7 +5,10 @@ import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 
+import com.jackylibrary.JackyDBHelper;
 import com.jackylibrary.LogUtils;
+
+import java.util.ArrayList;
 
 /**
  * 建議使用 JackyLibrary 的開發者可以自行寫一個 Application 繼承 JackyApplication
@@ -21,6 +24,12 @@ public class JackyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         LogUtils.prepare(this);
+        ArrayList<Class<JackyDao>> requiredDaoClasses = getRequiredDaoClasses();
+        if (requiredDaoClasses != null) {
+            for (Class<JackyDao> jackyDaoClass : requiredDaoClasses) {
+                JackyDBHelper.registerDao(jackyDaoClass);
+            }
+        }
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -85,5 +94,15 @@ public class JackyApplication extends Application {
         LogUtils.d(TAG, "Application changes to the background");
         LogUtils.flushLog();
     }
+
+
+    /**
+     * 這個方法會在 app onCreate 時被調用 用來 register 需要的 JackyDao
+     * 開發者可以覆寫此方法 並回傳需要 register 的 Dao ArrayList
+     */
+    public ArrayList<Class<JackyDao>> getRequiredDaoClasses() {
+        return null;
+    }
+
 
 }
