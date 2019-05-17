@@ -46,7 +46,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
         }
     }
 
-    private static HashMap<Class<JackyDao>, JackyDao> daoMap = new HashMap<>();
+    private static HashMap<Class<? extends JackyDao>, JackyDao> daoMap = new HashMap<>();
 
 
     /**
@@ -102,7 +102,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
      *
      * @param daoClass
      */
-    public static void registerDao(Class<JackyDao> daoClass) {
+    public static void registerDao(Class<? extends JackyDao> daoClass) {
         if (daoClass == null) {
             LogUtils.w(TAG, "registerDao() failed: daoClass is null");
             return;
@@ -125,7 +125,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
         daoMap.put(daoClass, jackyDao);
     }
 
-    public static JackyDao getDao(Class<JackyDao> daoClass) {
+    public static JackyDao getDao(Class<? extends JackyDao> daoClass) {
         return daoMap.get(daoClass);
     }
 
@@ -136,9 +136,9 @@ public class JackyDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        for (Map.Entry<Class<JackyDao>, JackyDao> classJackyDaoEntry : daoMap.entrySet()) {
+        for (Map.Entry<Class<? extends JackyDao>, JackyDao> classJackyDaoEntry : daoMap.entrySet()) {
             JackyDao dao = classJackyDaoEntry.getValue();
-            Class<JackyDao> jackyDaoClass = classJackyDaoEntry.getKey();
+            Class<? extends JackyDao> jackyDaoClass = classJackyDaoEntry.getKey();
             ArrayList<JackyDao.ColumnInfo> columnInfos = dao.getColumnInfos();
             if (columnInfos != null && columnInfos.size() > 0) {
                 StringBuilder sbForSQL = new StringBuilder(

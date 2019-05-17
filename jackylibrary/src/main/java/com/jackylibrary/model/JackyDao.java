@@ -13,16 +13,18 @@ import java.util.ArrayList;
 public class JackyDao {
 
     private static final String TAG = JackyDao.class.getName();
-    private ArrayList<ColumnInfo> columnList = new ArrayList<>();
+    private ArrayList<ColumnInfo> columnInfos = new ArrayList<>();
 
-
-    public ArrayList<ColumnInfo> getColumnList() {
-        return columnList;
-    }
-
-
+    /**
+     * 此方法會在 JackyDBHelper 的 onCreate() 中被調用
+     * 在其 onCreate() 方法中需要知道該建立資料表的內部需要的欄位格式資訊
+     * 開發者通常不需要覆寫此方法  只需要在 JackyDBHelper.prepare() 呼叫前先呼叫 JackyDao.addColumnAndType()
+     * 將需要的欄位資訊傳遞進去 後續工作 Library 會協助完成
+     *
+     * @return
+     */
     public ArrayList<ColumnInfo> getColumnInfos() {
-        return columnList;
+        return columnInfos;
     }
 
     /**
@@ -39,11 +41,11 @@ public class JackyDao {
             return;
         }
         ColumnInfo columnInfo = new ColumnInfo(columnName, dataType, isAllowNull);
-        if (columnList.contains(columnInfo)) {
+        if (columnInfos.contains(columnInfo)) {
             LogUtils.w(TAG, "addColumnAndType() failed: columnInfo already exist");
             return;
         }
-        columnList.add(columnInfo);
+        columnInfos.add(columnInfo);
     }
 
     public static class ColumnInfo {

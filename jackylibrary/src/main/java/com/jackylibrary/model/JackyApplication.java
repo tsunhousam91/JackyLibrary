@@ -24,9 +24,9 @@ public class JackyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         LogUtils.prepare(this);
-        ArrayList<Class<JackyDao>> requiredDaoClasses = getRequiredDaoClasses();
+        ArrayList<Class<? extends JackyDao>> requiredDaoClasses = getRequiredDaoClasses();
         if (requiredDaoClasses != null) {
-            for (Class<JackyDao> jackyDaoClass : requiredDaoClasses) {
+            for (Class<? extends JackyDao> jackyDaoClass : requiredDaoClasses) {
                 JackyDBHelper.registerDao(jackyDaoClass);
             }
         }
@@ -100,7 +100,7 @@ public class JackyApplication extends Application {
      * 這個方法會在 app onCreate 時被調用 用來 register 需要的 JackyDao
      * 開發者可以覆寫此方法 並回傳需要 register 的 Dao ArrayList
      */
-    public ArrayList<Class<JackyDao>> getRequiredDaoClasses() {
+    public ArrayList<Class<? extends JackyDao>> getRequiredDaoClasses() {
         return null;
     }
 
