@@ -29,18 +29,19 @@ public class JackyDBHelper extends SQLiteOpenHelper {
         if (readableDatabase == null) {
             synchronized (JackyDBHelper.class) {
                 if (readableDatabase == null) {
-                    readableDatabase = getReadableDatabase();
+                    readableDatabase = super.getReadableDatabase();
                 }
             }
         }
         return readableDatabase;
     }
 
-    public SQLiteDatabase getWriteableDatabase() {
+    @Override
+    public SQLiteDatabase getWritableDatabase() {
         if (writeableDatabase == null) {
             synchronized (JackyDBHelper.class) {
                 if (writeableDatabase == null) {
-                    writeableDatabase = getWriteableDatabase();
+                    writeableDatabase = super.getWritableDatabase();
                 }
             }
         }

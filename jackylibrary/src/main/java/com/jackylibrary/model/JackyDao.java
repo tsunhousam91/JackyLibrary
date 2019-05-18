@@ -73,7 +73,7 @@ public class JackyDao {
         for (int i = 0; i < columnNames.length; i++) {
             cv.put(columnNames[i], values[i]);
         }
-        return instance.getWriteableDatabase().insert(getClass().getSimpleName(), null, cv);
+        return instance.getWritableDatabase().insert(getClass().getSimpleName(), null, cv);
     }
 
     /**
@@ -117,7 +117,7 @@ public class JackyDao {
                     .append(searchColumnNames[i])
                     .append("=?");
         }
-        return instance.getWriteableDatabase().update(getClass().getSimpleName(), cv, sbForWhere.toString(), searchValues);
+        return instance.getWritableDatabase().update(getClass().getSimpleName(), cv, sbForWhere.toString(), searchValues);
     }
 
     /**
@@ -151,7 +151,7 @@ public class JackyDao {
                     .append(searchColumnNames[i])
                     .append("=?");
         }
-        return instance.getWriteableDatabase().delete(getClass().getSimpleName(), sbForWhere.toString(), searchValues);
+        return instance.getWritableDatabase().delete(getClass().getSimpleName(), sbForWhere.toString(), searchValues);
     }
 
     /**
@@ -166,7 +166,7 @@ public class JackyDao {
             LogUtils.w(this, "deleteAllData() failed: JackyDBHelper instance is null");
             return 0;
         }
-        return instance.getWriteableDatabase().delete(getClass().getSimpleName(), "1", null);
+        return instance.getWritableDatabase().delete(getClass().getSimpleName(), "1", null);
     }
 
     /**
