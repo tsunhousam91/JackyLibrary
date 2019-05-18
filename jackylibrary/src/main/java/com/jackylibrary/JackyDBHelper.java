@@ -15,7 +15,7 @@ import java.util.Map;
 public class JackyDBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = JackyDBHelper.class.getName();
-    private static final String DEFAULT_NAME = "myDatabase";
+    private static final String DEFAULT_NAME = "myDatabase.db";
     public static final String KEY_ID = "_id";
     public static final String UPDATE_TIME = "updateTime";
     private static JackyDBHelper instance;
@@ -117,6 +117,14 @@ public class JackyDBHelper extends SQLiteOpenHelper {
             }
             if (StringUtils.isEmpty(databaseName)) {
                 databaseName = DEFAULT_NAME;
+            } else {
+                if (databaseName.length() > 3 && !databaseName.substring(databaseName.length() - 3).equals(".db")) {
+                    databaseName = databaseName + ".db";
+                }else if(databaseName.equals(".db")){
+                    databaseName = DEFAULT_NAME;
+                }else if(databaseName.length() <= 3){
+                    databaseName = databaseName + ".db";
+                }
             }
             instance = new JackyDBHelper(context, databaseName, null, version);
             isPrepared = true;

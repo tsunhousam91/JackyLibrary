@@ -7,6 +7,7 @@ import com.jackylibrary.LogUtils;
 import com.jackylibrary.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * 開發者可以自行繼承此 Dao 但請不要設定一樣的 className (SimpleName)
@@ -106,6 +107,7 @@ public class JackyDao {
             return 0;
         }
         ContentValues cv = new ContentValues();
+        cv.put(JackyDBHelper.UPDATE_TIME, "(datetime('now','localtime'))");
         for (int i = 0; i < updateColumnNames.length; i++) {
             cv.put(updateColumnNames[i], updateValues[i]);
         }

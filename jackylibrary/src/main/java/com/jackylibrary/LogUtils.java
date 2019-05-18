@@ -94,7 +94,7 @@ public class LogUtils {
         appContext = context.getApplicationContext();
         File externalFilesDir = FileUtils.getDir(FileUtils.DirKind.EXTERNAL__FILES_DIR, appContext, null);
         externalLogDirectory = externalFilesDir != null ? new File(externalFilesDir.getParentFile(), LOG_DIRECTORY_NAME) : null;
-        File innerFilesDir = FileUtils.getDir(FileUtils.DirKind.INNER_DIR, appContext, null);
+        File innerFilesDir = FileUtils.getDir(FileUtils.DirKind.FILES_DIR, appContext, null);
         innerLogDirectory = innerFilesDir != null ? new File(innerFilesDir.getParentFile(), LOG_DIRECTORY_NAME) : null;
     }
 
