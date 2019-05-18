@@ -200,7 +200,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                             .append(" ")
                             .append(columnInfo.getDataType().name)
                             .append(columnInfo.isAllowNull() ? "" : " NOT　NULL")
-                            .append(columnInfo.getDefaultValue() == null ? "" : " DEFAULT " + columnInfo.getDefaultValue());
+                            .append(StringUtils.isEmpty(columnInfo.getDefaultValue()) ? "" : " DEFAULT " + columnInfo.getDefaultValue());
                 }
                 sbForSQL.append(")");
                 db.execSQL(sbForSQL.toString());
