@@ -78,7 +78,8 @@ public class JackyDBHelper extends SQLiteOpenHelper {
     public enum DataType {
         INTEGER("INTEGER"),
         REAL("REAL"),
-        TEXT("TEXT");
+        TEXT("TEXT"),
+        DATETIME("DATETIME");
         String name;
 
         DataType(String name) {
@@ -192,13 +193,14 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                 StringBuilder sbForSQL = new StringBuilder(
                         "CREATE TABLE " + jackyDaoClass.getSimpleName() + " (" +
                                 KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                UPDATE_TIME + " DATETIME DEFAULT (datetime('now','localtime'))");
+                                UPDATE_TIME + " DATETIME NOT NULL DEFAULT (datetime('now','localtime'))");
                 for (JackyDao.ColumnInfo columnInfo : columnInfos) {
                     sbForSQL.append(", ")
                             .append(columnInfo.getColumnName())
                             .append(" ")
                             .append(columnInfo.getDataType().name)
-                            .append(columnInfo.isAllowNull() ? "" : " NOT　NULL");
+                            .append(columnInfo.isAllowNull() ? "" : " NOT　NULL ")
+                            .append(columnInfo.getDefaultValue() == null ? "" : "DEFAULT " + columnInfo.getDefaultValue());
                 }
                 sbForSQL.append(")");
                 db.execSQL(sbForSQL.toString());

@@ -34,17 +34,19 @@ public class JackyDao {
     /**
      * 此方法用來讓開發者 自行新增需要的欄位
      * 此方法建議於 JackyDBHelper.prepare() 呼叫前使用
+     * 注意 關於 isAllowNull 參數 似乎沒有作用 還是可以塞入 null 值
+     * 但總之先不要依賴他 記得還是都要塞值就不會有問題了
      *
      * @param columnName
      * @param dataType
      * @param isAllowNull
      */
-    public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull) {
+    public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull, String defaultValue) {
         if (StringUtils.isEmpty(columnName)) {
             LogUtils.w(TAG, "addColumnAndType() failed: columnName is empty");
             return;
         }
-        ColumnInfo columnInfo = new ColumnInfo(columnName, dataType, isAllowNull);
+        ColumnInfo columnInfo = new ColumnInfo(columnName, dataType, isAllowNull, defaultValue);
         if (columnInfos.contains(columnInfo)) {
             LogUtils.w(TAG, "addColumnAndType() failed: columnInfo already exist");
             return;
@@ -181,18 +183,33 @@ public class JackyDao {
      * @param dataType
      */
     public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType) {
-        addColumnAndType(columnName, dataType, false);
+        String defaultValue = null;
+        switch (dataType){
+            case INTEGER:
+            case REAL:
+                defaultValue = "0";
+                break;
+            case TEXT:
+                defaultValue = "";
+                break;
+            case DATETIME:
+                defaultValue = "(datetime('now','localtime'))";
+                break;
+        }
+        addColumnAndType(columnName, dataType, false, defaultValue);
     }
 
     public static class ColumnInfo {
         private String columnName;
         private JackyDBHelper.DataType dataType;
-        boolean isAllowNull;
+        private boolean isAllowNull;
+        private String defaultValue;
 
-        public ColumnInfo(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull) {
+        public ColumnInfo(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull, String defaultValue) {
             this.columnName = columnName;
             this.dataType = dataType;
             this.isAllowNull = isAllowNull;
+            this.defaultValue = defaultValue;
         }
 
         public String getColumnName() {
@@ -206,6 +223,11 @@ public class JackyDao {
         public boolean isAllowNull() {
             return isAllowNull;
         }
+
+        public String getDefaultValue() {
+            return defaultValue;
+        }
+
 
         @Override
         public boolean equals(Object obj) {
