@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import com.jackylibrary.JackyDBHelper;
 import com.jackylibrary.LogUtils;
 import com.jackylibrary.StringUtils;
+import com.jackylibrary.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -107,7 +108,7 @@ public class JackyDao {
             return 0;
         }
         ContentValues cv = new ContentValues();
-        cv.put(JackyDBHelper.UPDATE_TIME, "(datetime('now','localtime'))");
+        cv.put(JackyDBHelper.UPDATE_TIME, TimeUtils.getNowDateFormat("yyyy-MM-dd HH:mm:ss"));
         for (int i = 0; i < updateColumnNames.length; i++) {
             cv.put(updateColumnNames[i], updateValues[i]);
         }
