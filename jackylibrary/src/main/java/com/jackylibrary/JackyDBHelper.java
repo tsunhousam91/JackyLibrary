@@ -199,8 +199,8 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                             .append(columnInfo.getColumnName())
                             .append(" ")
                             .append(columnInfo.getDataType().name)
-                            .append(columnInfo.isAllowNull() ? "" : " NOT　NULL ")
-                            .append(StringUtils.isEmpty(columnInfo.getDefaultValue()) ? "" : "DEFAULT " + columnInfo.getDefaultValue());
+                            .append(columnInfo.isAllowNull() ? "" : " NOT　NULL")
+                            .append(columnInfo.getDefaultValue() == null ? "" : " DEFAULT " + columnInfo.getDefaultValue());
                 }
                 sbForSQL.append(")");
                 db.execSQL(sbForSQL.toString());

@@ -190,7 +190,7 @@ public class JackyDao {
                 defaultValue = "0";
                 break;
             case TEXT:
-                defaultValue = "empty";
+                defaultValue = "";
                 break;
             case DATETIME:
                 defaultValue = "(datetime('now','localtime'))";
