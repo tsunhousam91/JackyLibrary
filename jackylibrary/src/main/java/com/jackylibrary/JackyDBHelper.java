@@ -17,15 +17,40 @@ public class JackyDBHelper extends SQLiteOpenHelper {
     private static final String TAG = JackyDBHelper.class.getName();
     private static final String DEFAULT_NAME = "myDatabase";
     public static final String KEY_ID = "_id";
-    private static final int DEFAULT_VERSION = 1;
+    public static final String UPDATE_TIME = "updateTime";
     private static JackyDBHelper instance;
     private Context appContext;
     private static boolean isPrepared = false;
+    private SQLiteDatabase readableDatabase;
+    private SQLiteDatabase writeableDatabase;
+
+    @Override
+    public SQLiteDatabase getReadableDatabase() {
+        if (readableDatabase == null) {
+            synchronized (JackyDBHelper.class) {
+                if (readableDatabase == null) {
+                    readableDatabase = getReadableDatabase();
+                }
+            }
+        }
+        return readableDatabase;
+    }
+
+    public SQLiteDatabase getWriteableDatabase() {
+        if (writeableDatabase == null) {
+            synchronized (JackyDBHelper.class) {
+                if (writeableDatabase == null) {
+                    writeableDatabase = getWriteableDatabase();
+                }
+            }
+        }
+        return writeableDatabase;
+    }
 
     /**
      * 此方法是一個接口 開發者如果想要自訂義 onUpgrade 的行為
      * 就要從外部定義好介面 onUpgradeListener 並把參數傳進來
-     * 此方法務必要在 prepare() 之前呼叫 否則來不及生效
+     * 此方法建議在 prepare() 之前呼叫
      *
      * @param listener
      */
@@ -33,7 +58,21 @@ public class JackyDBHelper extends SQLiteOpenHelper {
         onUpgradeListener = listener;
     }
 
+    /**
+     * 此方法是一個接口 開發者如果想要自訂義 onTableInit 的行為
+     * JackyDBHelper.onCreate() 的最後會自動調用此方法
+     * 可用在將建立好的資料表初始化
+     * 就要從外部定義好介面 onTableInitListener 並把參數傳進來
+     * 此方法建議在 prepare() 之前呼叫
+     *
+     * @param listener
+     */
+    public static void setOnTableInitListener(JackyDBHelper.onTableInitListener listener) {
+        onTableInitListener = listener;
+    }
+
     private static onUpgradeListener onUpgradeListener;
+    private static onTableInitListener onTableInitListener;
 
     public enum DataType {
         INTEGER("INTEGER"),
@@ -143,7 +182,8 @@ public class JackyDBHelper extends SQLiteOpenHelper {
             if (columnInfos != null && columnInfos.size() > 0) {
                 StringBuilder sbForSQL = new StringBuilder(
                         "CREATE TABLE " + jackyDaoClass.getSimpleName() + " (" +
-                                KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT");
+                                KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                UPDATE_TIME + " DATETIME DEFAULT (datetime('now','localtime'))");
                 for (JackyDao.ColumnInfo columnInfo : columnInfos) {
                     sbForSQL.append(", ")
                             .append(columnInfo.getColumnName())
@@ -185,9 +225,32 @@ public class JackyDBHelper extends SQLiteOpenHelper {
             //然後呼叫 onCreate 重新建立資料表
             onCreate(db);
         }
+        if (onTableInitListener != null) {
+            //若外部有定義初始化 table 的行為 則調用
+            onTableInitListener.onTableInit(db);
+        }
     }
 
     public interface onUpgradeListener {
         void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion);
+    }
+
+    public interface onTableInitListener {
+        void onTableInit(SQLiteDatabase db);
+    }
+
+    public void closeDBIfExist() {
+        if (readableDatabase != null && readableDatabase.isOpen()) {
+            readableDatabase.close();
+        }
+        if (writeableDatabase != null && writeableDatabase.isOpen()) {
+            writeableDatabase.close();
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        closeDBIfExist();
+        super.finalize();
     }
 }

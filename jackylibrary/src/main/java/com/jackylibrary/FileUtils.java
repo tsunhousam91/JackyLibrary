@@ -69,6 +69,10 @@ public class FileUtils {
         }
         switch (dirKind) {
             case INNER_DIR:
+                if(StringUtils.isEmpty(extraInfo)){
+                    LogUtils.w(TAG, "getDir() failed: extraInfo cannot be empty at DirKind-INNER_DIR");
+                    return null;
+                }
                 return context.getDir(extraInfo, Context.MODE_PRIVATE);
             case FILES_DIR:
                 return context.getFilesDir();

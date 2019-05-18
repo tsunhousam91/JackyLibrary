@@ -93,6 +93,10 @@ public class JackyApplication extends Application {
     public void onChangeToBackground() {
         LogUtils.d(TAG, "Application changes to the background");
         LogUtils.flushLog();
+        JackyDBHelper instance = JackyDBHelper.getInstance();
+        if(instance != null){
+            instance.closeDBIfExist();
+        }
     }
 
 
