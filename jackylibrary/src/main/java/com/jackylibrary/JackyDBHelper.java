@@ -206,6 +206,10 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                 db.execSQL(sbForSQL.toString());
             }
         }
+        if (onTableInitListener != null) {
+            //若外部有定義初始化 table 的行為 則調用
+            onTableInitListener.onTableInit(db);
+        }
     }
 
     /**
@@ -235,10 +239,6 @@ public class JackyDBHelper extends SQLiteOpenHelper {
             }
             //然後呼叫 onCreate 重新建立資料表
             onCreate(db);
-        }
-        if (onTableInitListener != null) {
-            //若外部有定義初始化 table 的行為 則調用
-            onTableInitListener.onTableInit(db);
         }
     }
 

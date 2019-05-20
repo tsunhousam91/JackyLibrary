@@ -61,6 +61,11 @@ public class JackyDao {
 
 
     public void addColumnInfosByEntity(Class<? extends JackyEntity> childClass) {
+        if (childClass == null) {
+            LogUtils.w(this,
+                    "addColumnInfosByEntity() failed: childClass is null");
+            return;
+        }
         if (childClass == JackyEntity.class) {
             LogUtils.w(this,
                     "addColumnInfosByEntity() failed: you should extends JackyEntity instead of using it directly");

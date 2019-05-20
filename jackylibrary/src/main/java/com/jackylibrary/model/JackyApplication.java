@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
+import android.util.Pair;
 
 import com.jackylibrary.JackyDBHelper;
 import com.jackylibrary.LogUtils;
@@ -24,10 +25,14 @@ public class JackyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         LogUtils.prepare(this);
-        ArrayList<Class<? extends JackyDao>> requiredDaoClasses = getRequiredDaoClasses();
-        if (requiredDaoClasses != null) {
-            for (Class<? extends JackyDao> jackyDaoClass : requiredDaoClasses) {
-                JackyDBHelper.registerDao(jackyDaoClass);
+        ArrayList<Pair<Class<? extends JackyDao>, Class<? extends JackyEntity>>> requiredDaoEntityPairs = getRequiredDaoEntityPairs();
+        if (requiredDaoEntityPairs != null) {
+            for (Pair<Class<? extends JackyDao>, Class<? extends JackyEntity>> pair : requiredDaoEntityPairs) {
+                JackyDBHelper.registerDao(pair.first);
+                JackyDao dao = JackyDBHelper.getDao(pair.first);
+                if (dao != null) {
+                    dao.addColumnInfosByEntity(pair.second);
+                }
             }
         }
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -94,17 +99,17 @@ public class JackyApplication extends Application {
         LogUtils.d(TAG, "Application changes to the background");
         LogUtils.flushLog();
         JackyDBHelper instance = JackyDBHelper.getInstance();
-        if(instance != null){
+        if (instance != null) {
             instance.closeDBIfExist();
         }
     }
 
 
     /**
-     * 這個方法會在 app onCreate 時被調用 用來 register 需要的 JackyDao
-     * 開發者可以覆寫此方法 並回傳需要 register 的 Dao ArrayList
+     * 這個方法會在 app onCreate 時被調用 用來 register 需要的 JackyDao 資訊
+     * 開發者可以覆寫此方法 並回傳需要 < Dao.class, Entity.class > 對 的 ArrayList
      */
-    public ArrayList<Class<? extends JackyDao>> getRequiredDaoClasses() {
+    public ArrayList<Pair<Class<? extends JackyDao>, Class<? extends JackyEntity>>> getRequiredDaoEntityPairs() {
         return null;
     }
 
