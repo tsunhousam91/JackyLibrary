@@ -5,7 +5,9 @@ A useful library, you can use this library to do the following things:<br/>
 read files, write files, copy files, delete files, and you can get the filePath you want conveniencly.
 
 2.LogUtils:<br/>
-Help you log easily, it will generates appropriate TAG automatically, and you can turn on the function "save log", if you do, it will help you save the logs to file, each log file will be named by the date, e.g. "20190514_log.txt", the log files will save in "Android/data/[packageName]/logs/" by default, if your device doesn't have the outer storage, then it will use the inner space, that is "data/data/[packageName]/logs/"
+Help you log easily, it will generates appropriate TAG automatically, and you can turn on the function "save log", if you do, it will help you save the logs to file, each log file will be named by the date, e.g. "20190514_log.txt", the log files will save in "Android/data/[packageName]/logs/" by default, if your device doesn't have the outer storage, then it will use the inner space, that is "data/data/[packageName]/logs/" <br/>
+notice: before you use this Utils, you need to call LogUtils.prepare(Context context) first, or it will throw NotPreparedException.
+Or you can simply use the application which extends JackyApplication, then the application will do this job automatically.
 
 3.PreferenceUtils:<br/>
 Help you get the SharedPreference easily.<br/>
