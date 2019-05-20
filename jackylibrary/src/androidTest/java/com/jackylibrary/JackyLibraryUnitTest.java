@@ -134,4 +134,9 @@ public class JackyLibraryUnitTest {
         FileUtils.deleteOneFile(
                 new File("/data/user/0/com.jackylibrary.test/shared_prefs/com.jackylibrary.test.xml"));
     }
+
+    @Test
+    public void testJackyDBHelper() {
+        Context appContext = InstrumentationRegistry.getTargetContext();
+    }
 }

@@ -1,14 +1,19 @@
 package com.jackylibrary.model;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 import com.jackylibrary.JackyDBHelper;
 import com.jackylibrary.LogUtils;
 import com.jackylibrary.StringUtils;
 import com.jackylibrary.TimeUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Date;
+
+import static com.jackylibrary.JackyDBHelper.KEY_ID;
+import static com.jackylibrary.JackyDBHelper.UPDATE_TIME;
 
 /**
  * 開發者可以自行繼承此 Dao 但請不要設定一樣的 className (SimpleName)
@@ -43,15 +48,49 @@ public class JackyDao {
      */
     public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull, String defaultValue) {
         if (StringUtils.isEmpty(columnName)) {
-            LogUtils.w(TAG, "addColumnAndType() failed: columnName is empty");
+            LogUtils.w(this, "addColumnAndType() failed: columnName is empty");
             return;
         }
         ColumnInfo columnInfo = new ColumnInfo(columnName, dataType, isAllowNull, defaultValue);
         if (columnInfos.contains(columnInfo)) {
-            LogUtils.w(TAG, "addColumnAndType() failed: columnInfo already exist");
+            LogUtils.w(this, "addColumnAndType() failed: columnInfo already exist");
             return;
         }
         columnInfos.add(columnInfo);
+    }
+
+
+    public void addColumnInfosByEntity(Class<? extends JackyEntity> childClass) {
+        if (childClass == JackyEntity.class) {
+            LogUtils.w(this,
+                    "addColumnInfosByEntity() failed: you should extends JackyEntity instead of using it directly");
+            return;
+        }
+        Field[] childFields = childClass.getDeclaredFields();
+        for (Field field : childFields) {
+            JackyDBHelper.DataType dataType = getDataTypeByField(field);
+            if (dataType == null) {
+                continue;
+            }
+            addColumnAndType(field.getName(), dataType);
+        }
+    }
+
+    private JackyDBHelper.DataType getDataTypeByField(Field field) {
+        String typeName = field.getType().getSimpleName();
+        switch (typeName) {
+            case "int":
+            case "long":
+            case "byte":
+            case "short":
+                return JackyDBHelper.DataType.INTEGER;
+            case "float":
+            case "double":
+                return JackyDBHelper.DataType.REAL;
+            case "String":
+                return JackyDBHelper.DataType.TEXT;
+        }
+        return null;
     }
 
     /**
@@ -174,6 +213,246 @@ public class JackyDao {
         return instance.getWritableDatabase().delete(getClass().getSimpleName(), "1", null);
     }
 
+
+    /**
+     * 此方法用來查詢資料表的項目
+     * 會回傳對應型態的ArrayList
+     *
+     * @param searchColumnNames
+     * @param searchValues
+     * @param childClass
+     * @return
+     */
+    public ArrayList<? extends JackyEntity> queryData(String[] searchColumnNames, String[] searchValues, Class<? extends JackyEntity> childClass) {
+        if (childClass == JackyEntity.class) {
+            LogUtils.w(this,
+                    "queryData() failed: you should extends JackyEntity instead of using it directly");
+            return null;
+        }
+        if (searchColumnNames == null || searchValues == null || searchColumnNames.length != searchValues.length || searchColumnNames.length == 0) {
+            LogUtils.w(this, "queryData() failed: invalid searchColumnNames or searchValues");
+            return null;
+        }
+        JackyDBHelper instance = JackyDBHelper.getInstance();
+        if (instance == null) {
+            LogUtils.w(this, "queryData() failed: JackyDBHelper instance is null");
+            return null;
+        }
+        StringBuilder sbForSql = new StringBuilder("SELECT * FROM " + getClass().getSimpleName()
+                + " WHERE " + searchColumnNames[0] + " =?");
+        for (int i = 1; i < searchColumnNames.length; i++) {
+            sbForSql.append(" AND ")
+                    .append(searchColumnNames[i])
+                    .append(" =?");
+        }
+        Cursor cursor = instance.getReadableDatabase().rawQuery(sbForSql.toString(), searchValues);
+        if (cursor == null) {
+            LogUtils.w(this, "queryData() failed: cursor is null");
+            return null;
+        }
+        ArrayList<JackyEntity> entities = null;
+        try {
+            if (cursor.moveToFirst()) {
+                entities = new ArrayList<>();
+                Field[] childFields = childClass.getDeclaredFields();
+                do {
+                    JackyEntity entity;
+                    try {
+                        entity = childClass.newInstance();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                        LogUtils.e(this, "queryData() error: " + e.getMessage());
+                        return null;
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                        LogUtils.e(this, "queryData() error: " + e.getMessage());
+                        return null;
+                    }
+                    for (Field field : childFields) {
+                        int columnIndex = cursor.getColumnIndex(field.getName());
+                        if (columnIndex == -1) {
+                            continue;
+                        }
+                        String setterName = getSetterNameForFieldName(field.getName());
+                        if (StringUtils.isEmpty(setterName)) {
+                            LogUtils.w(this, "queryData() failed: setterName is empty");
+                            return null;
+                        }
+                        String typeName = field.getType().getSimpleName();
+                        try {
+                            switch (typeName) {
+                                case "int":
+                                    childClass.getDeclaredMethod(setterName, int.class)
+                                            .invoke(entity, cursor.getInt(columnIndex));
+                                    break;
+                                case "long":
+                                    childClass.getDeclaredMethod(setterName, long.class)
+                                            .invoke(entity, cursor.getLong(columnIndex));
+                                    break;
+                                case "byte":
+                                    childClass.getDeclaredMethod(setterName, byte.class)
+                                            .invoke(entity, (byte) cursor.getInt(columnIndex));
+                                    break;
+                                case "short":
+                                    childClass.getDeclaredMethod(setterName, short.class)
+                                            .invoke(entity, cursor.getShort(columnIndex));
+                                    break;
+                                case "float":
+                                    childClass.getDeclaredMethod(setterName, float.class)
+                                            .invoke(entity, cursor.getFloat(columnIndex));
+                                    break;
+                                case "double":
+                                    childClass.getDeclaredMethod(setterName, double.class)
+                                            .invoke(entity, cursor.getDouble(columnIndex));
+                                    break;
+                                case "String":
+                                    childClass.getDeclaredMethod(setterName, String.class)
+                                            .invoke(entity, cursor.getString(columnIndex));
+                                    break;
+                            }
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                            LogUtils.e(this, "queryData() error: " + e.getMessage());
+                            return null;
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                            LogUtils.e(this, "queryData() error: " + e.getMessage());
+                            return null;
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                            LogUtils.e(this, "queryData() error: " + e.getMessage());
+                            return null;
+                        }
+                    }
+                    entity.set_id(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+                    entity.setUpdateTime(cursor.getString(cursor.getColumnIndex(UPDATE_TIME)));
+                    entities.add(entity);
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            cursor.close();
+        }
+        return entities;
+    }
+
+
+    /**
+     * 此方法用來查詢資料表所有的項目
+     * 會回傳對應型態的ArrayList
+     *
+     * @param childClass
+     * @return
+     */
+    public ArrayList<? extends JackyEntity> queryAllData(Class<? extends JackyEntity> childClass) {
+        if (childClass == JackyEntity.class) {
+            LogUtils.w(this,
+                    "queryData() failed: you should extends JackyEntity instead of using it directly");
+            return null;
+        }
+        JackyDBHelper instance = JackyDBHelper.getInstance();
+        if (instance == null) {
+            LogUtils.w(this, "queryData() failed: JackyDBHelper instance is null");
+            return null;
+        }
+        String sql = "SELECT * FROM " + getClass().getSimpleName();
+        Cursor cursor = instance.getReadableDatabase().rawQuery(sql, null);
+        if (cursor == null) {
+            LogUtils.w(this, "queryData() failed: cursor is null");
+            return null;
+        }
+        ArrayList<JackyEntity> entities = null;
+        entities = new ArrayList<>();
+        Field[] childFields = childClass.getDeclaredFields();
+        try {
+            while (cursor.moveToNext()) {
+                JackyEntity entity;
+                try {
+                    entity = childClass.newInstance();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    LogUtils.e(this, "queryData() error: " + e.getMessage());
+                    return null;
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                    LogUtils.e(this, "queryData() error: " + e.getMessage());
+                    return null;
+                }
+                for (Field field : childFields) {
+                    int columnIndex = cursor.getColumnIndex(field.getName());
+                    if (columnIndex == -1) {
+                        continue;
+                    }
+                    String setterName = getSetterNameForFieldName(field.getName());
+                    if (StringUtils.isEmpty(setterName)) {
+                        LogUtils.w(this, "queryData() failed: setterName is empty");
+                        return null;
+                    }
+                    String typeName = field.getType().getSimpleName();
+                    try {
+                        switch (typeName) {
+                            case "int":
+                                childClass.getDeclaredMethod(setterName, int.class)
+                                        .invoke(entity, cursor.getInt(columnIndex));
+                                break;
+                            case "long":
+                                childClass.getDeclaredMethod(setterName, long.class)
+                                        .invoke(entity, cursor.getLong(columnIndex));
+                                break;
+                            case "byte":
+                                childClass.getDeclaredMethod(setterName, byte.class)
+                                        .invoke(entity, (byte) cursor.getInt(columnIndex));
+                                break;
+                            case "short":
+                                childClass.getDeclaredMethod(setterName, short.class)
+                                        .invoke(entity, cursor.getShort(columnIndex));
+                                break;
+                            case "float":
+                                childClass.getDeclaredMethod(setterName, float.class)
+                                        .invoke(entity, cursor.getFloat(columnIndex));
+                                break;
+                            case "double":
+                                childClass.getDeclaredMethod(setterName, double.class)
+                                        .invoke(entity, cursor.getDouble(columnIndex));
+                                break;
+                            case "String":
+                                childClass.getDeclaredMethod(setterName, String.class)
+                                        .invoke(entity, cursor.getString(columnIndex));
+                                break;
+                        }
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                        LogUtils.e(this, "queryData() error: " + e.getMessage());
+                        return null;
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                        LogUtils.e(this, "queryData() error: " + e.getMessage());
+                        return null;
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                        LogUtils.e(this, "queryData() error: " + e.getMessage());
+                        return null;
+                    }
+                }
+                entity.set_id(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+                entity.setUpdateTime(cursor.getString(cursor.getColumnIndex(UPDATE_TIME)));
+                entities.add(entity);
+            }
+        } finally {
+            cursor.close();
+        }
+        return entities;
+    }
+
+    private String getSetterNameForFieldName(String fieldName) {
+        if (StringUtils.isEmpty(fieldName)) {
+            return null;
+        }
+        if (fieldName.length() == 1) {
+            return "set" + fieldName.toUpperCase();
+        }
+        return "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    }
+
     /**
      * 此方法用來讓開發者 自行新增需要的欄位
      * 預設 不允許欄位存在 NULL 值
@@ -184,16 +463,13 @@ public class JackyDao {
      */
     public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType) {
         String defaultValue = null;
-        switch (dataType){
+        switch (dataType) {
             case INTEGER:
             case REAL:
                 defaultValue = "0";
                 break;
             case TEXT:
                 defaultValue = "\"\"";
-                break;
-            case DATETIME:
-                defaultValue = "(datetime('now','localtime'))";
                 break;
         }
         addColumnAndType(columnName, dataType, false, defaultValue);

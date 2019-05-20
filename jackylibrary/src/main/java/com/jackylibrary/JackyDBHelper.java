@@ -78,8 +78,8 @@ public class JackyDBHelper extends SQLiteOpenHelper {
     public enum DataType {
         INTEGER("INTEGER"),
         REAL("REAL"),
-        TEXT("TEXT"),
-        DATETIME("DATETIME");
+        TEXT("TEXT");
+
         String name;
 
         DataType(String name) {
@@ -121,9 +121,9 @@ public class JackyDBHelper extends SQLiteOpenHelper {
             } else {
                 if (databaseName.length() > 3 && !databaseName.substring(databaseName.length() - 3).equals(".db")) {
                     databaseName = databaseName + ".db";
-                }else if(databaseName.equals(".db")){
+                } else if (databaseName.equals(".db")) {
                     databaseName = DEFAULT_NAME;
-                }else if(databaseName.length() <= 3){
+                } else if (databaseName.length() <= 3) {
                     databaseName = databaseName + ".db";
                 }
             }
