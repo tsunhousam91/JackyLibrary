@@ -116,7 +116,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                 LogUtils.w(TAG, "prepare() failed: version must be greater than 1");
                 return;
             }
-            if (StringUtils.isEmpty(databaseName)) {
+            if (StringUtils.isNullOrEmpty(databaseName)) {
                 databaseName = DEFAULT_NAME;
             } else {
                 if (databaseName.length() > 3 && !databaseName.substring(databaseName.length() - 3).equals(".db")) {
@@ -200,7 +200,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
                             .append(" ")
                             .append(columnInfo.getDataType().name)
                             .append(columnInfo.isAllowNull() ? "" : " NOT　NULL")
-                            .append(StringUtils.isEmpty(columnInfo.getDefaultValue()) ? "" : " DEFAULT " + columnInfo.getDefaultValue());
+                            .append(StringUtils.isNullOrEmpty(columnInfo.getDefaultValue()) ? "" : " DEFAULT " + columnInfo.getDefaultValue());
                 }
                 sbForSQL.append(")");
                 db.execSQL(sbForSQL.toString());

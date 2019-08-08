@@ -8,7 +8,7 @@ public class StringUtils {
      * @param s
      * @return
      */
-    public static boolean isEmpty(String s) {
+    public static boolean isNullOrEmpty(String s) {
         return s == null || s.length() == 0;
     }
 }

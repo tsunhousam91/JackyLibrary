@@ -47,7 +47,7 @@ public class JackyDao {
      * @param isAllowNull
      */
     public synchronized void addColumnAndType(String columnName, JackyDBHelper.DataType dataType, boolean isAllowNull, String defaultValue) {
-        if (StringUtils.isEmpty(columnName)) {
+        if (StringUtils.isNullOrEmpty(columnName)) {
             LogUtils.w(this, "addColumnAndType() failed: columnName is empty");
             return;
         }
@@ -279,7 +279,7 @@ public class JackyDao {
                             continue;
                         }
                         String setterName = getSetterNameForFieldName(field.getName());
-                        if (StringUtils.isEmpty(setterName)) {
+                        if (StringUtils.isNullOrEmpty(setterName)) {
                             LogUtils.w(this, "queryData() failed: setterName is empty");
                             return null;
                         }
@@ -388,7 +388,7 @@ public class JackyDao {
                         continue;
                     }
                     String setterName = getSetterNameForFieldName(field.getName());
-                    if (StringUtils.isEmpty(setterName)) {
+                    if (StringUtils.isNullOrEmpty(setterName)) {
                         LogUtils.w(this, "queryData() failed: setterName is empty");
                         return null;
                     }
@@ -449,7 +449,7 @@ public class JackyDao {
     }
 
     private String getSetterNameForFieldName(String fieldName) {
-        if (StringUtils.isEmpty(fieldName)) {
+        if (StringUtils.isNullOrEmpty(fieldName)) {
             return null;
         }
         if (fieldName.length() == 1) {

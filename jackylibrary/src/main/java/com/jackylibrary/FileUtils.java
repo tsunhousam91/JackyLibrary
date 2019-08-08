@@ -69,7 +69,7 @@ public class FileUtils {
         }
         switch (dirKind) {
             case INNER_DIR:
-                if(StringUtils.isEmpty(extraInfo)){
+                if(StringUtils.isNullOrEmpty(extraInfo)){
                     LogUtils.w(TAG, "getDir() failed: extraInfo cannot be empty at DirKind-INNER_DIR");
                     return null;
                 }
@@ -104,7 +104,7 @@ public class FileUtils {
             LogUtils.onlyLogW(TAG, "writeFile() failed: directory is null");
             return false;
         }
-        if (StringUtils.isEmpty(fileName)) {
+        if (StringUtils.isNullOrEmpty(fileName)) {
             LogUtils.onlyLogW(TAG, "writeFile() failed: fileName is empty");
             return false;
         }

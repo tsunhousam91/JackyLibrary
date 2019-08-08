@@ -8,6 +8,7 @@ import android.util.Pair;
 
 import com.jackylibrary.JackyDBHelper;
 import com.jackylibrary.LogUtils;
+import com.jackylibrary.PermissionHelper;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ public class JackyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         LogUtils.prepare(this);
+        PermissionHelper.prepare(this);
         ArrayList<Pair<Class<? extends JackyDao>, Class<? extends JackyEntity>>> requiredDaoEntityPairs = getRequiredDaoEntityPairs();
         if (requiredDaoEntityPairs != null) {
             for (Pair<Class<? extends JackyDao>, Class<? extends JackyEntity>> pair : requiredDaoEntityPairs) {

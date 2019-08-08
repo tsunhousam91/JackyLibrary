@@ -35,7 +35,7 @@ public class PreferenceUtils {
             LogUtils.w(TAG, "getPreference() failed: context is null");
             return null;
         }
-        if (StringUtils.isEmpty(name)) {
+        if (StringUtils.isNullOrEmpty(name)) {
             LogUtils.w(TAG, "getPreference() abnormal: name is empty, will use defaultPreference");
             return getDefaultPreference(context);
         }
