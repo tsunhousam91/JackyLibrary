@@ -5,8 +5,11 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class FileUtils {
     private static final String TAG = FileUtils.class.getName();
@@ -69,7 +72,7 @@ public class FileUtils {
         }
         switch (dirKind) {
             case INNER_DIR:
-                if(StringUtils.isNullOrEmpty(extraInfo)){
+                if (StringUtils.isNullOrEmpty(extraInfo)) {
                     LogUtils.w(TAG, "getDir() failed: extraInfo cannot be empty at DirKind-INNER_DIR");
                     return null;
                 }
@@ -185,8 +188,38 @@ public class FileUtils {
      * @param targetFileName
      */
     public static void copyFile(File sourceFile, File targetDirectory, String targetFileName) {
-        String content = readFile(sourceFile);
-        FileUtils.writeFile(targetDirectory, targetFileName, content);
+        File targetFile = new File(targetDirectory, targetFileName);
+        InputStream input = null;
+        OutputStream output = null;
+        try {
+            input = new FileInputStream(sourceFile);
+            output = new FileOutputStream(targetFile);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = input.read(buffer)) > 0) {
+                output.write(buffer, 0, bytesRead);
+            }
+        } catch (FileNotFoundException e) {
+            LogUtils.w(TAG, "copyFile() failed: file can not be found, sourcePath: "
+                    + sourceFile.getAbsolutePath() + ", targetPath: " + targetFile.getAbsolutePath());
+        } catch (IOException e) {
+            LogUtils.w(TAG, "copyFile() failed: IOException, " + e.getMessage());
+        } finally {
+            if (input != null ) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (output != null ) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
