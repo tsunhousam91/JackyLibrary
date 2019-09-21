@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
+import android.support.multidex.MultiDexApplication;
 import android.util.Pair;
 
 import com.jackylibrary.JackyDBHelper;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
  * 或直接使用 JackyApplication 此類別會幫助您控管一些 JackyLibrary 的 Utils
  * 讓您更加方便的使用 當然如果您想完全手動管理這些 Utils 也是可以
  */
-public class JackyApplication extends Application {
+public class JackyApplication extends MultiDexApplication {
 
     private static final String TAG = JackyApplication.class.getName();
     private int activityStartedCount = 0;
