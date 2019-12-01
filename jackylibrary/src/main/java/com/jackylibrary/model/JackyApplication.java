@@ -1,10 +1,9 @@
 package com.jackylibrary.model;
 
 import android.app.Activity;
-import android.app.Application;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.multidex.MultiDexApplication;
+import androidx.annotation.CallSuper;
+import androidx.multidex.MultiDexApplication;
 import android.util.Pair;
 
 import com.jackylibrary.JackyDBHelper;

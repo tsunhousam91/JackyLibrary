@@ -73,6 +73,14 @@ public class JackyDao {
         }
         Field[] childFields = childClass.getDeclaredFields();
         for (Field field : childFields) {
+            if(field.isSynthetic()){
+                //忽略編譯階段產生的field
+                continue;
+            }
+            if("serialVersionUID".equals(field.getName())){
+                //忽略serialVersionUID
+                continue;
+            }
             JackyDBHelper.DataType dataType = getDataTypeByField(field);
             if (dataType == null) {
                 continue;
