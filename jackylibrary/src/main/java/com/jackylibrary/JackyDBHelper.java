@@ -22,7 +22,7 @@ public class JackyDBHelper extends SQLiteOpenHelper {
     private Context appContext;
     private static boolean isPrepared = false;
     private SQLiteDatabase readableDatabase;
-    private SQLiteDatabase writeableDatabase;
+    private SQLiteDatabase writableDatabase;
 
     @Override
     public SQLiteDatabase getReadableDatabase() {
@@ -38,14 +38,14 @@ public class JackyDBHelper extends SQLiteOpenHelper {
 
     @Override
     public SQLiteDatabase getWritableDatabase() {
-        if (writeableDatabase == null) {
+        if (writableDatabase == null) {
             synchronized (JackyDBHelper.class) {
-                if (writeableDatabase == null) {
-                    writeableDatabase = super.getWritableDatabase();
+                if (writableDatabase == null) {
+                    writableDatabase = super.getWritableDatabase();
                 }
             }
         }
-        return writeableDatabase;
+        return writableDatabase;
     }
 
     /**
@@ -254,9 +254,11 @@ public class JackyDBHelper extends SQLiteOpenHelper {
         if (readableDatabase != null && readableDatabase.isOpen()) {
             readableDatabase.close();
         }
-        if (writeableDatabase != null && writeableDatabase.isOpen()) {
-            writeableDatabase.close();
+        if (writableDatabase != null && writableDatabase.isOpen()) {
+            writableDatabase.close();
         }
+        readableDatabase = null;
+        writableDatabase = null;
     }
 
     @Override
